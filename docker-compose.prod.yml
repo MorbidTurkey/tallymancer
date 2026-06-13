@@ -43,6 +43,9 @@ services:
       - "traefik.http.routers.tallymancer.tls.certresolver=mytlschallenge"
       # Traefik needs to know which container port to forward to.
       - "traefik.http.services.tallymancer.loadbalancer.server.port=80"
+      # When a container is on multiple networks, Traefik may pick the wrong one.
+      # This tells it explicitly to use the 'traefik' network to reach us.
+      - "traefik.docker.network=traefik"
     networks:
       - default
       - traefik
