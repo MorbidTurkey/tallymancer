@@ -110,7 +110,7 @@ Tallymancer is a real-time, shareable score/life tracker for any trading card ga
 3. React UI: list view with +/− buttons, free-text math input, editable names.
 4. Share links + role enforcement (player vs audience views).
 5. Table view rotation mode.
-6. PWA manifest/service worker, Docker + Traefik deployment.
+6. PWA manifest/service worker, Docker + Traefik deployment. **Note: development happens on Windows, deployment target is Docker on a Linux VPS — set up a `docker-compose.yml` usable for local development too, so the local and production environments match ("works on my machine" = "works on the VPS").**
 7. Polish: undo, history log, presets, session expiry.
 
 ## Definition of done for v1
