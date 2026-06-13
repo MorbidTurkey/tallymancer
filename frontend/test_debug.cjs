@@ -1,0 +1,17 @@
+const { chromium } = require('playwright')
+;(async () => {
+  const browser = await chromium.launch({ headless: true })
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  const msgs = []
+  page.on('console', m => msgs.push(m.type() + ': ' + m.text()))
+  page.on('pageerror', e => msgs.push('ERROR: ' + e.message))
+  await page.goto('http://localhost:5173', { waitUntil: 'networkidle' })
+  await page.screenshot({ path: 'test-debug.png' })
+  console.log('URL:', page.url())
+  console.log('Title:', await page.title())
+  console.log('Console messages:')
+  msgs.forEach(m => console.log(' ', m))
+  const cards = await page.$$('.preset-card')
+  console.log('Preset cards found:', cards.length)
+  await browser.close()
+})()

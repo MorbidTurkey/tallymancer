@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background: rounded rectangle in brand dark color -->
+  <rect width="512" height="512" rx="96" fill="#1c1c2e"/>
+  <!-- Accent bar at the top (like a card back stripe) -->
+  <rect x="60" y="60" width="392" height="8" rx="4" fill="#818cf8" opacity="0.6"/>
+  <!-- Big "T" letter in accent color -->
+  <text
+    x="256"
+    y="370"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+    font-size="320"
+    font-weight="800"
+    fill="#818cf8"
+    text-anchor="middle"
+    dominant-baseline="auto"
+  >T</text>
+  <!-- Accent bar at the bottom (mirrored card back stripe) -->
+  <rect x="60" y="444" width="392" height="8" rx="4" fill="#818cf8" opacity="0.6"/>
+</svg>

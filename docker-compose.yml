@@ -1,0 +1,55 @@
+# docker-compose.yml — works for both local development and production.
+#
+# ── Local development ──────────────────────────────────────────────────────
+#
+#   docker compose up --build
+#
+#   Frontend: http://localhost      (nginx serves built Vite app)
+#   Backend:  http://localhost:8000 (FastAPI, also accessible via nginx proxy)
+#
+#   For a faster inner loop, run the Vite dev server and backend directly
+#   (outside Docker) instead — `npm run dev` and `uvicorn app.main:app --reload`.
+#   Use Docker Compose when you want to test the production-like nginx setup.
+#
+# ── Production (VPS behind Traefik) ───────────────────────────────────────
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+#   docker-compose.prod.yml adds the Traefik labels and external network.
+#   The base file intentionally has no Traefik config so it works cleanly
+#   on a dev machine without Traefik installed.
+
+services:
+
+  # ── Backend (FastAPI) ──────────────────────────────────────────────────
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    # Exposed for direct access / debugging locally.
+    # In production (docker-compose.prod.yml) this port is not exposed —
+    # all traffic goes through the frontend nginx container.
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount the SQLite database directory outside the container so it
+      # survives container rebuilds.  In production, use a named volume
+      # or swap SQLite for Postgres (just change DATABASE_URL).
+      - ./data:/app/data
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////app/data/tallymancer.db}
+      # Share-link base URL: must match the domain where the frontend is served.
+      # Locally: http://localhost.  Production: https://tallymancer.com
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost}
+      SESSION_EXPIRY_HOURS: ${SESSION_EXPIRY_HOURS:-48}
+
+  # ── Frontend (nginx + Vite build) ────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    # Wait for backend to be ready before nginx starts accepting connections.
+    depends_on:
+      - backend
+    # No environment vars needed at runtime: VITE_API_URL is baked in at
+    # build time (empty = relative URLs, proxied by nginx → backend).

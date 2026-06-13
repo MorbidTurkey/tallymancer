@@ -1,0 +1,59 @@
+# docker-compose.prod.yml — production overrides for VPS + Traefik deployment.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# What this file does:
+#   1. Removes the direct port mappings (no raw :80/:8000 exposure — Traefik handles routing).
+#   2. Adds Traefik router labels so:
+#       - tallymancer.com → frontend nginx (all paths)
+#   3. Connects both services to the external 'traefik' Docker network so
+#      Traefik can discover and route to them.
+#
+# Prerequisites on the VPS:
+#   - Traefik container running and attached to the 'traefik' Docker network.
+#   - Traefik configured with:
+#       - entrypoint 'websecure' on :443
+#       - certificatesResolvers.letsencrypt (ACME, HTTP-01 or TLS-ALPN-01)
+#       - `--providers.docker=true` and `--providers.docker.exposedByDefault=false`
+#   - A .env file (same directory) defining at minimum:
+#       PUBLIC_BASE_URL=https://tallymancer.com
+#       DOMAIN=tallymancer.com
+#
+# How routing works:
+#   Traefik reads the labels on the `frontend` service and routes all HTTPS
+#   requests for tallymancer.com to the nginx container on port 80.
+#   nginx then proxies /api/* and /ws/* to the backend container (internal
+#   Docker network, no external exposure needed).
+#
+# WebSocket note:
+#   Traefik passes WS upgrade headers through by default when using
+#   entrypoint websecure — no special middleware needed here.
+
+services:
+
+  frontend:
+    # Remove the local port binding — Traefik handles incoming HTTPS.
+    ports: !reset []
+    labels:
+      - "traefik.enable=true"
+      # Route all traffic for the domain to this service.
+      - "traefik.http.routers.tallymancer.rule=Host(`${DOMAIN:-tallymancer.com}`)"
+      - "traefik.http.routers.tallymancer.entrypoints=websecure"
+      - "traefik.http.routers.tallymancer.tls.certresolver=letsencrypt"
+      # Traefik needs to know which container port to forward to.
+      - "traefik.http.services.tallymancer.loadbalancer.server.port=80"
+    networks:
+      - default
+      - traefik
+
+  backend:
+    # Remove the direct port exposure in production.
+    ports: !reset []
+    networks:
+      - default
+      - traefik
+
+networks:
+  traefik:
+    external: true
