@@ -40,7 +40,7 @@ services:
       # Route all traffic for the domain to this service.
       - "traefik.http.routers.tallymancer.rule=Host(`${DOMAIN:-tallymancer.com}`)"
       - "traefik.http.routers.tallymancer.entrypoints=websecure"
-      - "traefik.http.routers.tallymancer.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tallymancer.tls.certresolver=mytlschallenge"
       # Traefik needs to know which container port to forward to.
       - "traefik.http.services.tallymancer.loadbalancer.server.port=80"
     networks:
