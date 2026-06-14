@@ -18,7 +18,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../api.js'
 
-export default function PlayerCard({ player, token, tokenType, primaryCounter, onRemove, isEliminated, stepSizes = [1, 5] }) {
+export default function PlayerCard({ player, token, tokenType, primaryCounter, onRemove, isEliminated, stepSizes = [1, 5], playerColor }) {
   const isEditor = tokenType === 'player'
 
   // ── Name editing ──────────────────────────────────────────────────────
@@ -127,9 +127,11 @@ export default function PlayerCard({ player, token, tokenType, primaryCounter, o
     ([name]) => name !== primaryCounter
   )
 
-  const cardStyle = player.color
-    ? { '--player-color': player.color }
-    : {}
+  // playerColor (from parent, game-theme-derived) takes priority over the
+  // DB-stored player.color (global palette) so the card always shows the
+  // game's primary/secondary alternating scheme.
+  const resolvedColor = playerColor ?? player.color
+  const cardStyle = resolvedColor ? { '--player-color': resolvedColor } : {}
 
   return (
     <div

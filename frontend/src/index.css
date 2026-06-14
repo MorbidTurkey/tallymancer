@@ -392,20 +392,21 @@ input  { font: inherit; color: inherit; }
   overflow: hidden;
 }
 
-/* Top-right corner glow using the game's PRIMARY accent color.
-   Primary is distinct for every game (gold/cyan/magenta/gray) so
-   this makes cards visually game-specific even with per-player border colors.
-   inset: 0 fills the whole card so 100% 0% is exactly the top-right corner. */
+/* Top-right corner glow — a fixed-size circle centered just outside the
+   top-right corner so only the inner quarter is visible inside the card.
+   This creates a contained "orb" rather than a wide gradient wash.
+   calc(100% + 24px) -24px shifts the center 24px past the corner, so the
+   visible arc extends ~66px from the corner (circle radius 90px − offset 24px). */
 .player-card::after {
   content: '';
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    circle at 100% 0%,
-    var(--game-accent, rgba(0, 0, 0, 0)) 0%,
-    transparent 60%
+    circle 90px at calc(100% + 24px) -24px,
+    var(--player-color, var(--game-accent, rgba(0, 0, 0, 0))) 0%,
+    transparent 100%
   );
-  opacity: 0.20;
+  opacity: 0.45;
   pointer-events: none;
 }
 

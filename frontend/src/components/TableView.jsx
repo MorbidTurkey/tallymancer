@@ -109,7 +109,7 @@ function gridTemplate(count) {
 
 // ── TableView component ───────────────────────────────────────────────────
 
-export default function TableView({ players, token, tokenType, primaryCounter, stepSizes = [1, 5], onExit }) {
+export default function TableView({ players, token, tokenType, primaryCounter, stepSizes = [1, 5], playerColorMap = {}, onExit }) {
   const count = players.length
   const configs = seatConfigs(count)
   const template = gridTemplate(count)
@@ -138,6 +138,7 @@ export default function TableView({ players, token, tokenType, primaryCounter, s
                 tokenType={tokenType}
                 primaryCounter={primaryCounter}
                 stepSizes={stepSizes}
+                playerColor={playerColorMap[player.id]}
               />
             </div>
           </div>

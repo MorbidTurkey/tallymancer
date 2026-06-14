@@ -193,6 +193,16 @@ export default function SessionPage() {
   const victoryConfig = sessionData.preset_config?.victory
   const stepSizes = sessionData.preset_config?.step_sizes ?? [1, 5]
 
+  // Per-player color: alternate game primary/secondary by seat position.
+  // seat 0, 2, 4… → accent.primary; seat 1, 3, 5… → accent.secondary.
+  // Falls back to player.color (global palette) when no game accent is known.
+  const playerColorMap = {}
+  sessionData.players.forEach(p => {
+    playerColorMap[p.id] = accent
+      ? (p.seat_position % 2 === 0 ? accent.primary : accent.secondary)
+      : p.color
+  })
+
   // Game-theme accent colors — applied as CSS custom properties on the page wrapper
   // so they cascade into every PlayerCard's border and glow without prop drilling.
   //
@@ -400,6 +410,7 @@ export default function SessionPage() {
             primaryCounter={primaryCounter}
             isEliminated={eliminatedIds.has(player.id)}
             stepSizes={stepSizes}
+            playerColor={playerColorMap[player.id]}
           />
         ))}
 
@@ -450,6 +461,7 @@ export default function SessionPage() {
           tokenType={tokenType}
           primaryCounter={primaryCounter}
           stepSizes={stepSizes}
+          playerColorMap={playerColorMap}
           onExit={() => setTableMode(false)}
         />
       )}
