@@ -203,7 +203,18 @@ export default function SessionPage() {
   //                        connection dot).  CSS fallbacks supply the original safe defaults
   //                        so this variable can simply be absent for unthemed sessions.
   //   --game-accent-secondary  used for the corner glow on player cards
-  const accent = sessionData.preset_config?.accent
+  //
+  // Fallback map: sessions created before accent data was added to presets won't have
+  // preset_config.accent, so we look it up by slug here so ALL sessions get theming.
+  const ACCENT_BY_SLUG = {
+    mtg:     { primary: '#94a3b8', secondary: '#FAC775' },
+    mtg40:   { primary: '#94a3b8', secondary: '#FAC775' },
+    lorcana: { primary: '#FAC775', secondary: '#AFA9EC' },
+    swu:     { primary: '#85B7EB', secondary: '#FAC775' },
+    yugioh:  { primary: '#D4537E', secondary: '#FAC775' },
+    custom:  { primary: '#85B7EB', secondary: '#94a3b8' },
+  }
+  const accent = sessionData.preset_config?.accent ?? ACCENT_BY_SLUG[sessionData.game_preset]
   const gameAccentStyle = accent
     ? {
         '--game-accent':           accent.primary,
