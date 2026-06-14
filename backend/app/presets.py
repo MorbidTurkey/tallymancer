@@ -33,8 +33,8 @@ PRESETS: dict[str, dict[str, Any]] = {
         "slug": "mtg",
         "name": "Magic: The Gathering",
         "step_sizes": [1, 5],
-        # Neutral steel-gray primary (no single color faction) + mythic gold secondary
-        "accent": {"primary": "#94a3b8", "secondary": "#FAC775"},
+        # Neutral steel-gray primary (no single color faction) + soft violet secondary
+        "accent": {"primary": "#94a3b8", "secondary": "#A78BFA"},
         "counters": [
             {
                 "name": "life",
@@ -67,7 +67,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "slug": "mtg40",
         "name": "Magic: The Gathering (Commander / 40 life)",
         "step_sizes": [1, 5],
-        "accent": {"primary": "#94a3b8", "secondary": "#FAC775"},
+        "accent": {"primary": "#94a3b8", "secondary": "#A78BFA"},
         "counters": [
             {
                 "name": "life",
@@ -114,8 +114,8 @@ PRESETS: dict[str, dict[str, Any]] = {
         "slug": "swu",
         "name": "Star Wars Unlimited",
         "step_sizes": [1, 5],
-        # Holo-cyan primary (lightsaber/display) + warm amber secondary
-        "accent": {"primary": "#85B7EB", "secondary": "#FAC775"},
+        # Holo-cyan primary (lightsaber/display) + imperial rose-red secondary
+        "accent": {"primary": "#85B7EB", "secondary": "#FB7185"},
         "counters": [
             {
                 "name": "base",
@@ -133,8 +133,8 @@ PRESETS: dict[str, dict[str, Any]] = {
         "slug": "yugioh",
         "name": "Yu-Gi-Oh!",
         "step_sizes": [100, 500],
-        # Saturated magenta primary (distinct from Lorcana gold) + amber secondary
-        "accent": {"primary": "#D4537E", "secondary": "#FAC775"},
+        # Saturated magenta primary (distinct from Lorcana gold) + sky-blue secondary
+        "accent": {"primary": "#D4537E", "secondary": "#60A5FA"},
         "counters": [
             {
                 "name": "lp",

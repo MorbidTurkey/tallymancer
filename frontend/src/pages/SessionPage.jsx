@@ -207,24 +207,26 @@ export default function SessionPage() {
   // Fallback map: sessions created before accent data was added to presets won't have
   // preset_config.accent, so we look it up by slug here so ALL sessions get theming.
   const ACCENT_BY_SLUG = {
-    mtg:     { primary: '#94a3b8', secondary: '#FAC775' },
-    mtg40:   { primary: '#94a3b8', secondary: '#FAC775' },
-    lorcana: { primary: '#FAC775', secondary: '#AFA9EC' },
-    swu:     { primary: '#85B7EB', secondary: '#FAC775' },
-    yugioh:  { primary: '#D4537E', secondary: '#FAC775' },
-    custom:  { primary: '#85B7EB', secondary: '#94a3b8' },
+    mtg:     { primary: '#94a3b8', secondary: '#A78BFA' },  // steel + violet
+    mtg40:   { primary: '#94a3b8', secondary: '#A78BFA' },
+    lorcana: { primary: '#FAC775', secondary: '#AFA9EC' },  // gold + ink-purple
+    swu:     { primary: '#85B7EB', secondary: '#FB7185' },  // cyan + rose-red
+    yugioh:  { primary: '#D4537E', secondary: '#60A5FA' },  // magenta + blue
+    custom:  { primary: '#85B7EB', secondary: '#94a3b8' },  // blue + gray
   }
   const accent = sessionData.preset_config?.accent ?? ACCENT_BY_SLUG[sessionData.game_preset]
 
-  // Per-player color: alternate game primary/secondary by seat position.
-  // seat 0, 2, 4… → accent.primary; seat 1, 3, 5… → accent.secondary.
-  // Falls back to player.color (global palette) when no game accent is known.
-  // Must be after `accent` is declared above — uses it directly.
+  // Player palette: game primary + secondary first, then global palette for seats 3+.
+  // This gives each game 2 distinct branded colors, then falls back to neutral
+  // variety for larger groups — up to 8 unique colors before cycling.
+  const GLOBAL_PALETTE = ['#2DD4BF', '#FDE047', '#86EFAC', '#F9A8D4', '#FB923C', '#C4B5FD']
+  const playerPalette = accent
+    ? [accent.primary, accent.secondary, ...GLOBAL_PALETTE]
+    : GLOBAL_PALETTE
+
   const playerColorMap = {}
   sessionData.players.forEach(p => {
-    playerColorMap[p.id] = accent
-      ? (p.seat_position % 2 === 0 ? accent.primary : accent.secondary)
-      : p.color
+    playerColorMap[p.id] = playerPalette[p.seat_position % playerPalette.length]
   })
 
   const gameAccentStyle = accent
