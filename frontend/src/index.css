@@ -371,10 +371,10 @@ input  { font: inherit; color: inherit; }
 .player-card {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 16px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   /* Left accent border: per-player color → game theme accent → default border */
   border-left: 4px solid var(--player-color, var(--game-accent));
   transition: border-color .2s;
@@ -383,18 +383,18 @@ input  { font: inherit; color: inherit; }
   overflow: hidden;
 }
 
-/* Subtle corner glow using the game's secondary accent color */
+/* Subtle top-right corner glow using the game's secondary accent color.
+   inset: 0 fills the whole card so 100% 0% is exactly the top-right corner. */
 .player-card::after {
   content: '';
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  /* radial gradient fades from the accent color to transparent */
-  background: radial-gradient(circle at top right, var(--game-accent-secondary), transparent 70%);
-  opacity: 0.1;
+  inset: 0;
+  background: radial-gradient(
+    circle at 100% 0%,
+    var(--game-accent-secondary, rgba(0, 0, 0, 0)) 0%,
+    transparent 60%
+  );
+  opacity: 0.12;
   pointer-events: none;
 }
 
@@ -457,7 +457,7 @@ input  { font: inherit; color: inherit; }
   letter-spacing: -2px;
   color: var(--text);
   font-variant-numeric: tabular-nums;
-  padding: 8px 0;
+  padding: 12px 0;
 }
 
 /* Score change animations — scale bump + color flash */

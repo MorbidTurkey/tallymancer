@@ -169,6 +169,23 @@ PRESETS: dict[str, dict[str, Any]] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Per-player color palette
+# ---------------------------------------------------------------------------
+# Colors are cycled by seat_position when a player is created without an
+# explicit color.  6 colors covers the most common TCG group sizes (2-6).
+# Chosen to be distinct from each other AND legible on the dark card background.
+
+PLAYER_COLOR_PALETTE: list[str] = [
+    "#FAC775",  # amber / gold
+    "#7DD3FC",  # sky blue
+    "#86EFAC",  # mint green
+    "#F9A8D4",  # rose / pink
+    "#FB923C",  # orange
+    "#C4B5FD",  # lavender
+]
+
+
 def get_preset(slug: str) -> dict[str, Any] | None:
     """Return a preset by slug, or None if not found."""
     return PRESETS.get(slug)

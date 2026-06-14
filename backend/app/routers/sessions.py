@@ -15,7 +15,7 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from app.database import get_db
 from app.models import Player, Session, SessionToken
-from app.presets import get_preset, list_presets
+from app.presets import get_preset, list_presets, PLAYER_COLOR_PALETTE
 from app.schemas import (
     PresetOut,
     SessionCreate,
@@ -129,8 +129,11 @@ def create_session(body: SessionCreate, db: DBSession = Depends(get_db)):
     db.flush()
 
     # --- 4. Create initial players ---
+    # Auto-assign a distinct color from the palette by seat index so every
+    # player card has a unique accent even without an explicit color choice.
     for i, name in enumerate(body.player_names):
-        db.add(Player(session_id=session.id, name=name, seat_position=i))
+        color = PLAYER_COLOR_PALETTE[i % len(PLAYER_COLOR_PALETTE)]
+        db.add(Player(session_id=session.id, name=name, seat_position=i, color=color))
 
     db.commit()
 

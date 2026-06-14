@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session as DBSession
 
 from app.database import get_db
 from app.models import Player
+from app.presets import PLAYER_COLOR_PALETTE
 from app.routers.sessions import _resolve_token
 from app.schemas import PlayerCreate, PlayerOut, PlayerUpdate
 from app.state import build_player_dict
@@ -76,10 +77,15 @@ def add_player(
     existing = db.query(Player).filter(Player.session_id == session.id).all()
     next_seat = max((p.seat_position for p in existing), default=-1) + 1
 
+    # Use caller-supplied color if given; otherwise auto-assign from palette.
+    # seat_position determines which palette slot so the color is stable even
+    # if earlier players are removed.
+    color = body.color or PLAYER_COLOR_PALETTE[next_seat % len(PLAYER_COLOR_PALETTE)]
+
     player = Player(
         session_id=session.id,
         name=body.name,
-        color=body.color,
+        color=color,
         seat_position=next_seat,
     )
     db.add(player)
