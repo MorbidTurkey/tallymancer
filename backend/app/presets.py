@@ -54,6 +54,11 @@ PRESETS: dict[str, dict[str, Any]] = {
             },
         ],
         "win_condition": "Last player with life > 0 wins (or opponent reaches 10 poison)",
+        # victory: when life hits 0 the player is eliminated; last remaining wins.
+        # direction "lte" means the condition triggers when score <= threshold.
+        # event "eliminate" means hitting the threshold removes that player from
+        # contention; "win" means that player immediately wins.
+        "victory": {"counter": "life", "threshold": 0, "direction": "lte", "event": "eliminate"},
     },
     "mtg40": {
         "slug": "mtg40",
@@ -77,6 +82,7 @@ PRESETS: dict[str, dict[str, Any]] = {
             },
         ],
         "win_condition": "Last player with life > 0 wins (or opponent reaches 10 poison)",
+        "victory": {"counter": "life", "threshold": 0, "direction": "lte", "event": "eliminate"},
     },
     "lorcana": {
         "slug": "lorcana",
@@ -92,6 +98,9 @@ PRESETS: dict[str, dict[str, Any]] = {
             }
         ],
         "win_condition": "First to 20 lore wins",
+        # direction "gte" means the condition triggers when score >= threshold.
+        # event "win" means that player immediately wins.
+        "victory": {"counter": "lore", "threshold": 20, "direction": "gte", "event": "win"},
     },
     "swu": {
         "slug": "swu",
@@ -107,6 +116,7 @@ PRESETS: dict[str, dict[str, Any]] = {
             }
         ],
         "win_condition": "Reduce opponent's base to 0",
+        "victory": {"counter": "base", "threshold": 0, "direction": "lte", "event": "eliminate"},
     },
     "yugioh": {
         "slug": "yugioh",
@@ -122,6 +132,7 @@ PRESETS: dict[str, dict[str, Any]] = {
             }
         ],
         "win_condition": "Reduce opponent's LP to 0",
+        "victory": {"counter": "lp", "threshold": 0, "direction": "lte", "event": "eliminate"},
     },
     "custom": {
         "slug": "custom",
@@ -137,6 +148,7 @@ PRESETS: dict[str, dict[str, Any]] = {
             }
         ],
         "win_condition": None,
+        "victory": None,  # no automatic victory condition for custom games
     },
 }
 

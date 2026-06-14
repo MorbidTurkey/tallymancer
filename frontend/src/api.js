@@ -69,6 +69,9 @@ export const api = {
   undo: (token) =>
     request(`/api/sessions/${token}/undo`, { method: 'POST' }),
 
+  resetScores: (token) =>
+    request(`/api/sessions/${token}/reset`, { method: 'POST' }),
+
   getHistory: (token) =>
     request(`/api/sessions/${token}/history`),
 }

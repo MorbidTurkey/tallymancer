@@ -18,7 +18,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../api.js'
 
-export default function PlayerCard({ player, token, tokenType, primaryCounter, onRemove }) {
+export default function PlayerCard({ player, token, tokenType, primaryCounter, onRemove, isEliminated }) {
   const isEditor = tokenType === 'player'
 
   // ── Name editing ──────────────────────────────────────────────────────
@@ -117,7 +117,11 @@ export default function PlayerCard({ player, token, tokenType, primaryCounter, o
     : {}
 
   return (
-    <div className="player-card" style={cardStyle} data-color={!!player.color}>
+    <div
+      className={`player-card${isEliminated ? ' player-card--eliminated' : ''}`}
+      style={cardStyle}
+      data-color={!!player.color}
+    >
       {/* ── Header: name + remove ── */}
       <div className="player-card__header">
         {editingName ? (
@@ -141,6 +145,9 @@ export default function PlayerCard({ player, token, tokenType, primaryCounter, o
           </button>
         )}
 
+        {isEliminated && (
+          <span className="player-card__eliminated-badge" aria-label="Eliminated">out</span>
+        )}
         {isEditor && (
           <button className="player-card__remove" onClick={handleRemove} aria-label={`Remove ${player.name}`}>
             ✕

@@ -66,8 +66,8 @@ export default function HomePage() {
     setLoading(true)
     setError(null)
 
-    // Filter out empty name inputs
-    const names = playerNames.map(n => n.trim()).filter(Boolean)
+    // Use entered name, or fall back to "Player N" for any blank slot
+    const names = playerNames.map((n, i) => n.trim() || `Player ${i + 1}`)
 
     try {
       const { player_link, audience_link } = await api.createSession({

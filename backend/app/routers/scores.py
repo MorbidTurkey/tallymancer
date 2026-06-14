@@ -19,7 +19,7 @@ from sqlalchemy import desc
 from sqlalchemy.orm import Session as DBSession
 
 from app.database import get_db
-from app.models import ScoreEvent, Session
+from app.models import Player, ScoreEvent, Session
 from app.routers.sessions import _resolve_token
 from app.routers.players import _get_active_player, _require_player_token
 from app.schemas import ScoreDeltaCreate, ScoreEventOut, UndoOut
@@ -189,6 +189,52 @@ def undo_last_score(
         score_before_undo=score_before_undo,
         score_after_undo=score_after_undo,
     )
+
+
+# ---------------------------------------------------------------------------
+# POST /api/sessions/{token}/reset
+# ---------------------------------------------------------------------------
+
+@router.post("/reset", status_code=status.HTTP_200_OK)
+def reset_scores(
+    token: str,
+    background_tasks: BackgroundTasks,
+    db: DBSession = Depends(get_db),
+):
+    """
+    Reset all player scores back to their preset starting values.
+
+    This is non-destructive: each reset is written as a new ScoreEvent so
+    the history log shows the reset happened, and undo still works.
+    Players whose score is already at the starting value get no event.
+    """
+    session, _ = _require_player_token(token, db)
+
+    players = (
+        db.query(Player)
+        .filter(Player.session_id == session.id, Player.is_active == True)
+        .all()
+    )
+
+    for player in players:
+        for counter in session.preset_config.get("counters", []):
+            current = _get_current_score(player.id, counter["name"], session, db)
+            starting = counter.get("starting", 0)
+            delta = starting - current
+            if delta == 0:
+                continue  # already at starting value — no event needed
+            event = ScoreEvent(
+                session_id=session.id,
+                player_id=player.id,
+                counter_name=counter["name"],
+                delta=delta,
+                resulting_score=starting,
+            )
+            db.add(event)
+
+    db.commit()
+    background_tasks.add_task(broadcast_session, session.id)
+    return {"reset": True}
 
 
 # ---------------------------------------------------------------------------

@@ -15,10 +15,19 @@
  *   localStorage, keyed by the player token.  The share panel reads from
  *   there.  Audience visitors don't have this data, so the share panel
  *   never appears for them.
+ *
+ * Victory detection:
+ *   Each preset can declare a `victory` config:
+ *     { counter, threshold, direction: "gte"|"lte", event: "win"|"eliminate" }
+ *   "win"     — the player who hits the threshold wins immediately (Lorcana).
+ *   "eliminate" — hitting the threshold eliminates that player; last one
+ *                 standing wins (MTG, SWU, Yu-Gi-Oh!).
+ *   Victory state is recomputed from live scores on every WS sync, so it
+ *   auto-updates on undo or any score change.
  */
 
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useWebSocket } from '../hooks/useWebSocket.js'
 import { api } from '../api.js'
 import PlayerCard from '../components/PlayerCard.jsx'
@@ -28,6 +37,7 @@ import HistoryPanel from '../components/HistoryPanel.jsx'
 
 export default function SessionPage() {
   const { token } = useParams()
+  const navigate = useNavigate()
   const { sessionData, tokenType, wsStatus, wsError } = useWebSocket(token)
   const isEditor = tokenType === 'player'
 
@@ -35,43 +45,23 @@ export default function SessionPage() {
   const [showHistory, setShowHistory] = useState(false)
   const [historyKey, setHistoryKey]   = useState(0)
 
-  // Bump historyKey every time a WS sync delivers new sessionData.
-  // HistoryPanel watches this prop and re-fetches from the server when it changes,
-  // so the history stays current while the panel is open.
-  // This useEffect is placed BEFORE conditional returns to satisfy Rules of Hooks.
   useEffect(() => {
     if (sessionData && showHistory) setHistoryKey(k => k + 1)
   }, [sessionData]) // eslint-disable-line react-hooks/exhaustive-deps
 
-
-
   // ── Table view mode ───────────────────────────────────────────────────
-  // When active, a full-screen overlay shows each player's panel rotated
-  // to face their seat on a phone lying flat in the middle of the table.
   const [tableMode, setTableMode] = useState(false)
 
   // ── Share links ───────────────────────────────────────────────────────
-  // Loaded from localStorage (written by HomePage at creation time).
-  // Audience visitors won't have this data — that's intentional.
   const storedLinks = (() => {
     try { return JSON.parse(localStorage.getItem(`tallymancer_links_${token}`) ?? 'null') }
     catch { return null }
   })()
 
-  // Auto-open the share panel the first time the creator visits.
-  // sessionStorage tracks "has seen" per browser session so it doesn't
-  // pop open again on every page refresh.
-  const seenKey = `tallymancer_share_seen_${token}`
-  const [showShare, setShowShare] = useState(
-    Boolean(storedLinks) && sessionStorage.getItem(seenKey) !== 'true'
-  )
-  function closeShare() {
-    setShowShare(false)
-    sessionStorage.setItem(seenKey, 'true')
-  }
+  // Share panel starts closed — user opens it deliberately via the Share button.
+  const [showShare, setShowShare] = useState(false)
 
-  // ── Copy-to-clipboard with "Copied!" feedback ─────────────────────────
-  const [copiedLink, setCopiedLink] = useState(null)  // 'player' | 'audience' | null
+  const [copiedLink, setCopiedLink] = useState(null)
   function copyLink(url, which) {
     navigator.clipboard.writeText(url).then(
       () => { setCopiedLink(which); setTimeout(() => setCopiedLink(null), 2000) },
@@ -91,6 +81,34 @@ export default function SessionPage() {
     setTimeout(() => setUndoMsg(null), 2500)
   }
 
+  // ── Menu (home / clear scores) ────────────────────────────────────────
+  const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef(null)
+
+  // Close the menu when clicking outside it
+  useEffect(() => {
+    if (!showMenu) return
+    function onClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [showMenu])
+
+  async function handleClearScores() {
+    setShowMenu(false)
+    if (!window.confirm('Reset all scores back to starting values?')) return
+    try {
+      await api.resetScores(token)
+    } catch (err) {
+      alert('Could not reset scores: ' + err.message)
+    }
+  }
+
+  function handleGoHome() {
+    navigate('/')
+  }
+
   // ── Add player ────────────────────────────────────────────────────────
   const [addingPlayer, setAddingPlayer] = useState(false)
   const [newName, setNewName] = useState('')
@@ -105,6 +123,47 @@ export default function SessionPage() {
     } catch (err) { console.error('Add player failed:', err.message) }
   }
 
+  // ── Victory detection ─────────────────────────────────────────────────
+  // Recomputed from live scores on every WS sync.  No server round-trip needed
+  // because we already have all scores in sessionData.
+  const { winner, eliminated } = useMemo(() => {
+    const vic = sessionData?.preset_config?.victory
+    const players = sessionData?.players ?? []
+    if (!vic || players.length === 0) return { winner: null, eliminated: [] }
+
+    const { counter, threshold, direction, event } = vic
+    // Check whether a given score satisfies the victory/elimination condition.
+    const triggered = score => direction === 'gte' ? score >= threshold : score <= threshold
+
+    if (event === 'win') {
+      // First player to hit the threshold wins outright.
+      const w = players.find(p => triggered(p.scores?.[counter] ?? 0))
+      return { winner: w ?? null, eliminated: [] }
+    } else {
+      // "eliminate" mode: players who hit the threshold are out.
+      // Last player standing wins (only declared if ≥2 players total).
+      const elim = players.filter(p => triggered(p.scores?.[counter] ?? 0))
+      const remaining = players.filter(p => !triggered(p.scores?.[counter] ?? 0))
+      const w = players.length > 1 && remaining.length === 1 ? remaining[0] : null
+      return { winner: w, eliminated: elim }
+    }
+  }, [sessionData])
+
+  // Victory banner visibility — dismissed per winner so undo re-shows it.
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+  const prevWinnerIdRef = useRef(null)
+  useEffect(() => {
+    const id = winner?.id ?? null
+    if (id !== prevWinnerIdRef.current) {
+      prevWinnerIdRef.current = id
+      if (id !== null) setBannerDismissed(false)  // new winner → reveal banner
+    }
+  }, [winner])
+
+  const showVictoryBanner = winner && !bannerDismissed
+
+  const eliminatedIds = new Set(eliminated.map(p => p.id))
+
   // ── Error state (bad/expired token) ───────────────────────────────────
   if (wsError === 'invalid_token') {
     return (
@@ -114,7 +173,7 @@ export default function SessionPage() {
         <p className="error-screen__body">
           This link is invalid or the session has expired. Check with the session creator for a fresh link.
         </p>
-        <Link to="/" className="btn btn--primary">Start a new game</Link>
+        <button className="btn btn--primary" onClick={() => navigate('/')}>Start a new game</button>
       </div>
     )
   }
@@ -131,6 +190,7 @@ export default function SessionPage() {
 
   const primaryCounter = sessionData.preset_config?.counters?.[0]?.name ?? 'life'
   const gameName = sessionData.preset_config?.name ?? sessionData.game_preset
+  const victoryConfig = sessionData.preset_config?.victory
 
   // ── Render ────────────────────────────────────────────────────────────
   return (
@@ -144,31 +204,28 @@ export default function SessionPage() {
         </div>
 
         <div className="session-header__right">
-          {/* Role badge — always shown once we know the role */}
           {tokenType && (
             <span className={`role-badge role-badge--${tokenType}`}>
               {tokenType === 'player' ? 'Player' : 'Audience'}
             </span>
           )}
-          {/* History log toggle */}
           <button
             className={`btn btn--ghost btn--sm${showHistory ? ' btn--active' : ''}`}
             onClick={() => {
               const next = !showHistory
               setShowHistory(next)
-              if (next) setHistoryKey(k => k + 1)  // trigger fetch when opening
+              if (next) setHistoryKey(k => k + 1)
             }}
             title="Score history"
           >
             ≡ Log
           </button>
 
-          {/* Table view toggle — only useful when there are players */}
           {sessionData.players.length > 0 && (
             <button
               className="btn btn--ghost btn--sm"
               onClick={() => setTableMode(m => !m)}
-              title="Switch to table view — phone lies flat, each player faces their panel"
+              title="Switch to table view"
             >
               ⊞ Table
             </button>
@@ -181,12 +238,45 @@ export default function SessionPage() {
           {storedLinks && (
             <button
               className="btn btn--ghost btn--sm"
-              onClick={() => showShare ? closeShare() : setShowShare(true)}
+              onClick={() => setShowShare(s => !s)}
               title="Share session links"
             >
               Share
             </button>
           )}
+
+          {/* ── Menu button ── */}
+          <div className="session-menu" ref={menuRef}>
+            <button
+              className="btn btn--ghost btn--sm"
+              onClick={() => setShowMenu(m => !m)}
+              title="Menu"
+              aria-haspopup="true"
+              aria-expanded={showMenu}
+            >
+              ⋮
+            </button>
+            {showMenu && (
+              <div className="session-menu__dropdown" role="menu">
+                <button
+                  className="session-menu__item"
+                  role="menuitem"
+                  onClick={handleGoHome}
+                >
+                  🏠 Main Menu
+                </button>
+                {isEditor && (
+                  <button
+                    className="session-menu__item"
+                    role="menuitem"
+                    onClick={handleClearScores}
+                  >
+                    ↺ Clear Scores
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -195,12 +285,32 @@ export default function SessionPage() {
         <div className="toast" role="status" aria-live="polite">{undoMsg}</div>
       )}
 
+      {/* ── Victory banner ── */}
+      {showVictoryBanner && (
+        <div className="victory-banner" role="status" aria-live="polite">
+          <div className="victory-banner__inner">
+            <span className="victory-banner__emoji">🎉</span>
+            <div className="victory-banner__text">
+              <span className="victory-banner__name">{winner.name}</span>
+              <span className="victory-banner__label"> wins!</span>
+            </div>
+            <button
+              className="victory-banner__dismiss"
+              onClick={() => setBannerDismissed(true)}
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Share panel ── */}
       {showShare && storedLinks && (
         <div className="share-panel">
           <div className="share-panel__header">
             <span className="share-panel__heading">Share this session</span>
-            <button className="share-panel__close" onClick={closeShare} aria-label="Close share panel">✕</button>
+            <button className="share-panel__close" onClick={() => setShowShare(false)} aria-label="Close share panel">✕</button>
           </div>
 
           <ShareRow
@@ -237,6 +347,13 @@ export default function SessionPage() {
         <div className="audience-banner">Watching live · scores update automatically</div>
       )}
 
+      {/* ── Victory condition hint ── */}
+      {victoryConfig && (
+        <div className="victory-hint">
+          {sessionData.preset_config?.win_condition}
+        </div>
+      )}
+
       {/* ── Player grid ── */}
       <main className="player-grid">
         {sessionData.players.map(player => (
@@ -246,6 +363,7 @@ export default function SessionPage() {
             token={token}
             tokenType={tokenType}
             primaryCounter={primaryCounter}
+            isEliminated={eliminatedIds.has(player.id)}
           />
         ))}
 
@@ -289,8 +407,6 @@ export default function SessionPage() {
       )}
 
       {/* ── Table view overlay ── */}
-      {/* Rendered as position:fixed so it covers the entire screen.
-          The exit button floats in the center so it's reachable from any seat. */}
       {tableMode && (
         <TableView
           players={sessionData.players}
