@@ -177,12 +177,12 @@ PRESETS: dict[str, dict[str, Any]] = {
 # Chosen to be distinct from each other AND legible on the dark card background.
 
 PLAYER_COLOR_PALETTE: list[str] = [
-    "#FAC775",  # amber / gold
-    "#7DD3FC",  # sky blue
-    "#86EFAC",  # mint green
-    "#F9A8D4",  # rose / pink
-    "#FB923C",  # orange
-    "#C4B5FD",  # lavender
+    "#2DD4BF",  # teal         — replaces amber (was identical to Lorcana gold)
+    "#FDE047",  # yellow        — replaces sky-blue (was too similar to SWU cyan)
+    "#86EFAC",  # mint green    — distinct from all game primaries
+    "#F9A8D4",  # rose / pink   — lighter than YGO magenta, clearly different
+    "#FB923C",  # orange        — distinct from all game primaries
+    "#C4B5FD",  # lavender      — distinct from all game primaries
 ]
 
 

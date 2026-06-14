@@ -195,9 +195,21 @@ export default function SessionPage() {
 
   // Game-theme accent colors — applied as CSS custom properties on the page wrapper
   // so they cascade into every PlayerCard's border and glow without prop drilling.
+  //
+  // Two variables serve different purposes:
+  //   --game-accent        used for borders / glows / stripes (default is near-transparent
+  //                        so unthemed sessions don't get random colored borders)
+  //   --game-accent-text   used where we need a readable foreground color (game name,
+  //                        connection dot).  CSS fallbacks supply the original safe defaults
+  //                        so this variable can simply be absent for unthemed sessions.
+  //   --game-accent-secondary  used for the corner glow on player cards
   const accent = sessionData.preset_config?.accent
   const gameAccentStyle = accent
-    ? { '--game-accent': accent.primary, '--game-accent-secondary': accent.secondary }
+    ? {
+        '--game-accent':           accent.primary,
+        '--game-accent-secondary': accent.secondary,
+        '--game-accent-text':      accent.primary,
+      }
     : {}
 
   // ── Render ────────────────────────────────────────────────────────────

@@ -22,8 +22,12 @@
   --header-h:    56px;
   /* Monospace font stack for scoreboard-style score numbers */
   --font-mono:   ui-monospace, 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
-  /* Per-game theme accents — overridden on .session-page by the preset config */
-  --game-accent:           #2e2e4a;  /* default: same as border (no theming) */
+  /* Per-game theme accents — overridden on .session-page by the preset config.
+     --game-accent        : used for borders/stripes/glows; defaults near-invisible
+     --game-accent-secondary: used for card corner glow; transparent = no glow
+     --game-accent-text   : used for text/dots; NOT set here — elements fall back
+                            to their original safe defaults when it's absent */
+  --game-accent:           #2e2e4a;
   --game-accent-secondary: transparent;
 }
 
@@ -148,7 +152,8 @@ input  { font: inherit; color: inherit; }
   border-radius: 50%;
   background: var(--text-muted);
 }
-.conn-status--connected  .conn-status__dot { background: #4ade80; }
+/* Connection dot: game accent color when available, green otherwise */
+.conn-status--connected  .conn-status__dot { background: var(--game-accent-text, #4ade80); }
 .conn-status--connecting .conn-status__dot,
 .conn-status--reconnecting .conn-status__dot {
   background: #facc15;
@@ -243,6 +248,8 @@ input  { font: inherit; color: inherit; }
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   gap: 12px;
+  /* 3px game-colored top stripe — invisible when --game-accent is the default near-black */
+  border-top: 3px solid var(--game-accent, transparent);
 }
 .session-header__left  { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .session-header__right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -252,6 +259,8 @@ input  { font: inherit; color: inherit; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* --game-accent-text is only set when a theme is active; falls back to normal text color */
+  color: var(--game-accent-text, var(--text));
 }
 
 /* ── Share panel ─────────────────────────────────────────────── */
@@ -924,7 +933,8 @@ input  { font: inherit; color: inherit; }
   font-size: 0.75rem;
   color: var(--text-muted);
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  /* Bottom border uses game accent when available, normal border color otherwise */
+  border-bottom: 1px solid var(--game-accent, var(--border));
   letter-spacing: .01em;
 }
 .victory-hint--editing {
