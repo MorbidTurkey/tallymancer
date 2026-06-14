@@ -20,6 +20,11 @@
   --radius-sm:   8px;
   --gap:         12px;
   --header-h:    56px;
+  /* Monospace font stack for scoreboard-style score numbers */
+  --font-mono:   ui-monospace, 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+  /* Per-game theme accents — overridden on .session-page by the preset config */
+  --game-accent:           #2e2e4a;  /* default: same as border (no theming) */
+  --game-accent-secondary: transparent;
 }
 
 /* ── Reset ───────────────────────────────────────────────────── */
@@ -370,9 +375,27 @@ input  { font: inherit; color: inherit; }
   display: flex;
   flex-direction: column;
   gap: 12px;
-  /* Color accent: left border tinted with player's color via CSS var */
-  border-left: 4px solid var(--player-color, var(--border));
+  /* Left accent border: per-player color → game theme accent → default border */
+  border-left: 4px solid var(--player-color, var(--game-accent));
   transition: border-color .2s;
+  /* Needed for the corner glow ::after pseudo-element */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle corner glow using the game's secondary accent color */
+.player-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  /* radial gradient fades from the accent color to transparent */
+  background: radial-gradient(circle at top right, var(--game-accent-secondary), transparent 70%);
+  opacity: 0.1;
+  pointer-events: none;
 }
 
 /* Header row: name + remove button */
@@ -424,18 +447,32 @@ input  { font: inherit; color: inherit; }
 }
 .player-card__remove:hover { background: var(--surface-2); color: var(--minus-color); }
 
-/* Big score number */
+/* Big score number — monospace font reads as "scoreboard" rather than "dashboard" */
 .player-card__score {
+  font-family: var(--font-mono);
   font-size: clamp(3.5rem, 14vw, 5.5rem);
   font-weight: 800;
   text-align: center;
   line-height: 1;
   letter-spacing: -2px;
   color: var(--text);
-  /* Use tabular numbers so digits don't jump when score changes */
   font-variant-numeric: tabular-nums;
   padding: 8px 0;
 }
+
+/* Score change animations — scale bump + color flash */
+@keyframes scoreFlashPlus {
+  0%   { transform: scale(1);    color: var(--text); }
+  30%  { transform: scale(1.15); color: #4ade80; }
+  100% { transform: scale(1);    color: var(--text); }
+}
+@keyframes scoreFlashMinus {
+  0%   { transform: scale(1);    color: var(--text); }
+  30%  { transform: scale(1.15); color: #f87171; }
+  100% { transform: scale(1);    color: var(--text); }
+}
+.player-card__score--flash-plus  { animation: scoreFlashPlus  200ms ease-out; }
+.player-card__score--flash-minus { animation: scoreFlashMinus 200ms ease-out; }
 
 /* Secondary counter badges (e.g. poison in MTG) */
 .player-card__secondary {
@@ -487,7 +524,7 @@ input  { font: inherit; color: inherit; }
 .step-btn--lg.step-btn--minus:hover { background: rgba(248,113,113,.3); }
 .step-btn--lg.step-btn--plus:hover  { background: rgba(74,222,128,.3); }
 
-/* Small ±5 buttons */
+/* Small outer step buttons */
 .step-btn--sm {
   min-height: 44px;
   font-size: 0.9rem;
@@ -496,6 +533,12 @@ input  { font: inherit; color: inherit; }
   border: 1px solid var(--border);
 }
 .step-btn--sm:hover { background: var(--border); color: var(--text); }
+
+/* Tinted variants for the outer small buttons to match their direction */
+.step-btn--sm.step-btn--minus { background: rgba(248,113,113,.10); color: var(--minus-color); border-color: rgba(248,113,113,.2); }
+.step-btn--sm.step-btn--plus  { background: rgba(74,222,128,.10);  color: var(--plus-color);  border-color: rgba(74,222,128,.2); }
+.step-btn--sm.step-btn--minus:hover { background: rgba(248,113,113,.20); }
+.step-btn--sm.step-btn--plus:hover  { background: rgba(74,222,128,.20);  }
 
 /* Free-text math input */
 .math-input {
@@ -728,7 +771,7 @@ input  { font: inherit; color: inherit; }
      Use the accent color as a bottom border instead — always visible to
      the player regardless of rotation. */
   border-left: none;
-  border-bottom: 4px solid var(--player-color, var(--border));
+  border-bottom: 4px solid var(--player-color, var(--game-accent));
   /* Center content vertically */
   justify-content: center;
 }

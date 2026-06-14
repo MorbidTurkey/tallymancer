@@ -33,6 +33,8 @@ PRESETS: dict[str, dict[str, Any]] = {
         "slug": "mtg",
         "name": "Magic: The Gathering",
         "step_sizes": [1, 5],
+        # Neutral steel-gray primary (no single color faction) + mythic gold secondary
+        "accent": {"primary": "#94a3b8", "secondary": "#FAC775"},
         "counters": [
             {
                 "name": "life",
@@ -65,6 +67,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "slug": "mtg40",
         "name": "Magic: The Gathering (Commander / 40 life)",
         "step_sizes": [1, 5],
+        "accent": {"primary": "#94a3b8", "secondary": "#FAC775"},
         "counters": [
             {
                 "name": "life",
@@ -90,6 +93,8 @@ PRESETS: dict[str, dict[str, Any]] = {
         "slug": "lorcana",
         "name": "Disney Lorcana",
         "step_sizes": [1, 5],
+        # Warm gold primary (lore/ink) + ink-purple secondary
+        "accent": {"primary": "#FAC775", "secondary": "#AFA9EC"},
         "counters": [
             {
                 "name": "lore",
@@ -109,6 +114,8 @@ PRESETS: dict[str, dict[str, Any]] = {
         "slug": "swu",
         "name": "Star Wars Unlimited",
         "step_sizes": [1, 5],
+        # Holo-cyan primary (lightsaber/display) + warm amber secondary
+        "accent": {"primary": "#85B7EB", "secondary": "#FAC775"},
         "counters": [
             {
                 "name": "base",
@@ -126,6 +133,8 @@ PRESETS: dict[str, dict[str, Any]] = {
         "slug": "yugioh",
         "name": "Yu-Gi-Oh!",
         "step_sizes": [100, 500],
+        # Saturated magenta primary (distinct from Lorcana gold) + amber secondary
+        "accent": {"primary": "#D4537E", "secondary": "#FAC775"},
         "counters": [
             {
                 "name": "lp",
@@ -143,6 +152,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "slug": "custom",
         "name": "Custom",
         "step_sizes": [1, 5],
+        "accent": {"primary": "#85B7EB", "secondary": "#94a3b8"},
         "counters": [
             {
                 "name": "score",

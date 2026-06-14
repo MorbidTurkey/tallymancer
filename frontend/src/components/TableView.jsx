@@ -56,12 +56,13 @@ function seatConfigs(count) {
       ]
 
     case 3:
-      // 2×2 grid: bottom spans both columns, top-left and top-right
-      // 3 players sit at: bottom edge (0°), left edge (90°), right edge (270°)
+      // 2×2 grid: top row is one player spanning both columns (rotated 180° to face the
+      // player sitting at the top of the table), bottom row is two players side-by-side (0°).
+      // This is simpler than a sideways/wedge layout and easier to read in practice.
       return [
-        { gridStyle: { gridRow: 2, gridColumn: '1 / 3' }, rotation: 0,   sideways: false }, // bottom
-        { gridStyle: { gridRow: 1, gridColumn: 1        }, rotation: 90,  sideways: true  }, // left
-        { gridStyle: { gridRow: 1, gridColumn: 2        }, rotation: 270, sideways: true  }, // right
+        { gridStyle: { gridRow: 2, gridColumn: 1        }, rotation: 0,   sideways: false }, // bottom-left
+        { gridStyle: { gridRow: 2, gridColumn: 2        }, rotation: 0,   sideways: false }, // bottom-right
+        { gridStyle: { gridRow: 1, gridColumn: '1 / 3'  }, rotation: 180, sideways: false }, // top (spans)
       ]
 
     case 4:
@@ -108,7 +109,7 @@ function gridTemplate(count) {
 
 // ── TableView component ───────────────────────────────────────────────────
 
-export default function TableView({ players, token, tokenType, primaryCounter, onExit }) {
+export default function TableView({ players, token, tokenType, primaryCounter, stepSizes = [1, 5], onExit }) {
   const count = players.length
   const configs = seatConfigs(count)
   const template = gridTemplate(count)
@@ -136,6 +137,7 @@ export default function TableView({ players, token, tokenType, primaryCounter, o
                 token={token}
                 tokenType={tokenType}
                 primaryCounter={primaryCounter}
+                stepSizes={stepSizes}
               />
             </div>
           </div>

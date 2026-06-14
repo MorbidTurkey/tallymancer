@@ -191,10 +191,18 @@ export default function SessionPage() {
   const primaryCounter = sessionData.preset_config?.counters?.[0]?.name ?? 'life'
   const gameName = sessionData.preset_config?.name ?? sessionData.game_preset
   const victoryConfig = sessionData.preset_config?.victory
+  const stepSizes = sessionData.preset_config?.step_sizes ?? [1, 5]
+
+  // Game-theme accent colors — applied as CSS custom properties on the page wrapper
+  // so they cascade into every PlayerCard's border and glow without prop drilling.
+  const accent = sessionData.preset_config?.accent
+  const gameAccentStyle = accent
+    ? { '--game-accent': accent.primary, '--game-accent-secondary': accent.secondary }
+    : {}
 
   // ── Render ────────────────────────────────────────────────────────────
   return (
-    <div className="session-page">
+    <div className="session-page" style={gameAccentStyle}>
 
       {/* ── Header ── */}
       <header className="session-header">
@@ -221,7 +229,8 @@ export default function SessionPage() {
             ≡ Log
           </button>
 
-          {sessionData.players.length > 0 && (
+          {/* Table view only makes sense for ≤4 players (each faces their seat) */}
+          {sessionData.players.length > 0 && sessionData.players.length <= 4 && (
             <button
               className="btn btn--ghost btn--sm"
               onClick={() => setTableMode(m => !m)}
@@ -367,7 +376,7 @@ export default function SessionPage() {
             tokenType={tokenType}
             primaryCounter={primaryCounter}
             isEliminated={eliminatedIds.has(player.id)}
-            stepSizes={sessionData.preset_config?.step_sizes ?? [1, 5]}
+            stepSizes={stepSizes}
           />
         ))}
 
@@ -417,6 +426,7 @@ export default function SessionPage() {
           token={token}
           tokenType={tokenType}
           primaryCounter={primaryCounter}
+          stepSizes={stepSizes}
           onExit={() => setTableMode(false)}
         />
       )}

@@ -50,6 +50,12 @@ class VictoryConfigOut(_Base):
     event: str       # "win" | "eliminate"
 
 
+class AccentOut(_Base):
+    """Per-game theme accent colors sent to the frontend for card borders and glows."""
+    primary: str    # CSS hex string — used for border-left on player cards
+    secondary: str  # CSS hex string — used for corner glow on player cards
+
+
 class PresetOut(_Base):
     slug: str
     name: str
@@ -57,6 +63,7 @@ class PresetOut(_Base):
     win_condition: str | None
     victory: VictoryConfigOut | None = None
     step_sizes: list[int] = [1, 5]
+    accent: AccentOut | None = None
 
 
 # ---------------------------------------------------------------------------

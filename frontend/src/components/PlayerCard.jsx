@@ -63,9 +63,24 @@ export default function PlayerCard({ player, token, tokenType, primaryCounter, o
   // (or correct it if the server clamped the value).
   const [optimisticDelta, setOptimisticDelta] = useState(0)
 
+  // ── Score change animation ────────────────────────────────────────────
+  // 'plus' | 'minus' | null — drives the CSS flash class on the score element.
+  // flashKey forces a React remount of the score div so the animation
+  // restarts from the beginning even on rapid successive presses.
+  const [scoreFlashDir, setScoreFlashDir]   = useState(null)
+  const [flashKey,      setFlashKey]         = useState(0)
+  const flashTimerRef = useRef(null)
+
   async function applyDelta(delta) {
     if (!isEditor) return
     setOptimisticDelta(d => d + delta)  // show change immediately
+
+    // Trigger the score bounce + color flash
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current)
+    setScoreFlashDir(delta > 0 ? 'plus' : 'minus')
+    setFlashKey(k => k + 1)  // remount the score element to restart animation
+    flashTimerRef.current = setTimeout(() => setScoreFlashDir(null), 250)
+
     try {
       await api.applyDelta(token, player.id, delta, primaryCounter)
     } catch (err) {
@@ -156,7 +171,12 @@ export default function PlayerCard({ player, token, tokenType, primaryCounter, o
       </div>
 
       {/* ── Primary score ── */}
-      <div className="player-card__score" aria-label={`${player.name} score: ${displayScore}`}>
+      {/* key={flashKey} remounts this element on each press so the CSS animation restarts */}
+      <div
+        key={flashKey}
+        className={`player-card__score${scoreFlashDir ? ` player-card__score--flash-${scoreFlashDir}` : ''}`}
+        aria-label={`${player.name} score: ${displayScore}`}
+      >
         {displayScore}
       </div>
 
@@ -175,7 +195,7 @@ export default function PlayerCard({ player, token, tokenType, primaryCounter, o
       {isEditor && (
         <div className="player-card__controls">
           <div className="step-buttons">
-            <button className="step-btn step-btn--sm" onClick={() => applyDelta(-stepSizes[1])} aria-label={`-${stepSizes[1]}`}>
+            <button className="step-btn step-btn--sm step-btn--minus" onClick={() => applyDelta(-stepSizes[1])} aria-label={`-${stepSizes[1]}`}>
               −{stepSizes[1]}
             </button>
             <button className="step-btn step-btn--lg step-btn--minus" onClick={() => applyDelta(-stepSizes[0])} aria-label={`-${stepSizes[0]}`}>
@@ -184,7 +204,7 @@ export default function PlayerCard({ player, token, tokenType, primaryCounter, o
             <button className="step-btn step-btn--lg step-btn--plus" onClick={() => applyDelta(+stepSizes[0])} aria-label={`+${stepSizes[0]}`}>
               +{stepSizes[0]}
             </button>
-            <button className="step-btn step-btn--sm" onClick={() => applyDelta(+stepSizes[1])} aria-label={`+${stepSizes[1]}`}>
+            <button className="step-btn step-btn--sm step-btn--plus" onClick={() => applyDelta(+stepSizes[1])} aria-label={`+${stepSizes[1]}`}>
               +{stepSizes[1]}
             </button>
           </div>
