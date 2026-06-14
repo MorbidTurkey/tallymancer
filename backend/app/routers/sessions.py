@@ -100,12 +100,9 @@ def create_session(body: SessionCreate, db: DBSession = Depends(get_db)):
     5. Return both share links.
     """
     # --- 1. Resolve preset config ---
-    if body.game_preset == "custom":
-        if not body.custom_config:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="custom_config is required when game_preset is 'custom'",
-            )
+    # If a custom_config is provided it takes priority (future: user-defined presets).
+    # Otherwise look up the slug from the built-in PRESETS dict — including "custom".
+    if body.custom_config:
         preset_config = body.custom_config
     else:
         preset = get_preset(body.game_preset)
