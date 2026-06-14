@@ -768,6 +768,72 @@ input  { font: inherit; color: inherit; }
 .table-exit-btn:hover,
 .table-exit-btn:focus { background: var(--surface-2); color: var(--text); }
 
+/* ── Home page game settings ─────────────────────────────────── */
+.settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.setting-row--toggle { flex-wrap: nowrap; }
+.setting-row__label {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  min-width: 120px;
+  flex-shrink: 0;
+}
+.setting-row__unit {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.setting-input {
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.9rem;
+  width: 90px;
+  outline: none;
+  transition: border-color .15s;
+  -moz-appearance: textfield;
+}
+.setting-input:focus { border-color: var(--accent); }
+.setting-input--inline { width: 80px; }
+.setting-select {
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.85rem;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+  transition: border-color .15s;
+}
+.setting-select:focus { border-color: var(--accent); }
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.toggle-label input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; }
+.toggle-label__text { white-space: nowrap; }
+.setting-note {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 /* ── Session menu (⋮ dropdown) ───────────────────────────────── */
 .session-menu {
   position: relative;
@@ -807,7 +873,10 @@ input  { font: inherit; color: inherit; }
 
 /* ── Victory condition hint bar ──────────────────────────────── */
 .victory-hint {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 5px 16px;
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -815,6 +884,38 @@ input  { font: inherit; color: inherit; }
   border-bottom: 1px solid var(--border);
   letter-spacing: .01em;
 }
+.victory-hint--editing {
+  padding: 8px 16px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.victory-hint__label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.victory-hint__input {
+  width: 72px;
+  padding: 4px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.85rem;
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.victory-hint__edit-btn {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: opacity .15s, background .15s;
+}
+.victory-hint:hover .victory-hint__edit-btn { opacity: 1; }
+.victory-hint__edit-btn:hover { background: var(--surface-2); }
 
 /* ── Victory banner ──────────────────────────────────────────── */
 .victory-banner {

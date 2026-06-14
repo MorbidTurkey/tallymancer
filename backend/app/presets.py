@@ -32,6 +32,7 @@ PRESETS: dict[str, dict[str, Any]] = {
     "mtg": {
         "slug": "mtg",
         "name": "Magic: The Gathering",
+        "step_sizes": [1, 5],
         "counters": [
             {
                 "name": "life",
@@ -63,6 +64,7 @@ PRESETS: dict[str, dict[str, Any]] = {
     "mtg40": {
         "slug": "mtg40",
         "name": "Magic: The Gathering (Commander / 40 life)",
+        "step_sizes": [1, 5],
         "counters": [
             {
                 "name": "life",
@@ -87,6 +89,7 @@ PRESETS: dict[str, dict[str, Any]] = {
     "lorcana": {
         "slug": "lorcana",
         "name": "Disney Lorcana",
+        "step_sizes": [1, 5],
         "counters": [
             {
                 "name": "lore",
@@ -105,6 +108,7 @@ PRESETS: dict[str, dict[str, Any]] = {
     "swu": {
         "slug": "swu",
         "name": "Star Wars Unlimited",
+        "step_sizes": [1, 5],
         "counters": [
             {
                 "name": "base",
@@ -121,6 +125,7 @@ PRESETS: dict[str, dict[str, Any]] = {
     "yugioh": {
         "slug": "yugioh",
         "name": "Yu-Gi-Oh!",
+        "step_sizes": [100, 500],
         "counters": [
             {
                 "name": "lp",
@@ -137,6 +142,7 @@ PRESETS: dict[str, dict[str, Any]] = {
     "custom": {
         "slug": "custom",
         "name": "Custom",
+        "step_sizes": [1, 5],
         "counters": [
             {
                 "name": "score",

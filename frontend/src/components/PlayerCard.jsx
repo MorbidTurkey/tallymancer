@@ -18,7 +18,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../api.js'
 
-export default function PlayerCard({ player, token, tokenType, primaryCounter, onRemove, isEliminated }) {
+export default function PlayerCard({ player, token, tokenType, primaryCounter, onRemove, isEliminated, stepSizes = [1, 5] }) {
   const isEditor = tokenType === 'player'
 
   // ── Name editing ──────────────────────────────────────────────────────
@@ -175,17 +175,17 @@ export default function PlayerCard({ player, token, tokenType, primaryCounter, o
       {isEditor && (
         <div className="player-card__controls">
           <div className="step-buttons">
-            <button className="step-btn step-btn--sm" onClick={() => applyDelta(-5)} aria-label="-5">
-              −5
+            <button className="step-btn step-btn--sm" onClick={() => applyDelta(-stepSizes[1])} aria-label={`-${stepSizes[1]}`}>
+              −{stepSizes[1]}
             </button>
-            <button className="step-btn step-btn--lg step-btn--minus" onClick={() => applyDelta(-1)} aria-label="-1">
-              −1
+            <button className="step-btn step-btn--lg step-btn--minus" onClick={() => applyDelta(-stepSizes[0])} aria-label={`-${stepSizes[0]}`}>
+              −{stepSizes[0]}
             </button>
-            <button className="step-btn step-btn--lg step-btn--plus" onClick={() => applyDelta(+1)} aria-label="+1">
-              +1
+            <button className="step-btn step-btn--lg step-btn--plus" onClick={() => applyDelta(+stepSizes[0])} aria-label={`+${stepSizes[0]}`}>
+              +{stepSizes[0]}
             </button>
-            <button className="step-btn step-btn--sm" onClick={() => applyDelta(+5)} aria-label="+5">
-              +5
+            <button className="step-btn step-btn--sm" onClick={() => applyDelta(+stepSizes[1])} aria-label={`+${stepSizes[1]}`}>
+              +{stepSizes[1]}
             </button>
           </div>
 

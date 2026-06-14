@@ -9,8 +9,9 @@ GET  /api/presets          → list available game presets
 import os
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session as DBSession
+from sqlalchemy.orm.attributes import flag_modified
 
 from app.database import get_db
 from app.models import Player, Session, SessionToken
@@ -18,9 +19,11 @@ from app.presets import get_preset, list_presets
 from app.schemas import (
     PresetOut,
     SessionCreate,
+    SessionConfigUpdate,
     SessionOut,
     SessionTokenOut,
 )
+from app.ws_manager import broadcast_session
 from app.state import build_player_dict, build_session_payload
 
 router = APIRouter(prefix="/api", tags=["sessions"])
@@ -136,6 +139,55 @@ def create_session(body: SessionCreate, db: DBSession = Depends(get_db)):
         player_link=f"{PUBLIC_BASE_URL}/session/{player_token.token}",
         audience_link=f"{PUBLIC_BASE_URL}/session/{audience_token.token}",
     )
+
+
+# ---------------------------------------------------------------------------
+# PATCH /api/sessions/{token}/config
+# ---------------------------------------------------------------------------
+
+@router.patch("/sessions/{token}/config", status_code=status.HTTP_200_OK)
+def update_session_config(
+    token: str,
+    body: SessionConfigUpdate,
+    background_tasks: BackgroundTasks,
+    db: DBSession = Depends(get_db),
+):
+    """
+    Update mutable parts of a session's preset_config.
+
+    Currently only `victory_threshold` is editable mid-game.  Changing it
+    does not retroactively alter any score events — it only shifts the
+    threshold the frontend checks against live scores.
+
+    SQLAlchemy can't track nested mutations in JSON columns, so we must
+    build a new dict and reassign the whole column (flag_modified forces
+    the ORM to mark it dirty so it's written on commit).
+    """
+    session, token_type = _resolve_token(token, db)
+    if token_type != "player":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only player tokens can edit session config.",
+        )
+
+    if body.victory_threshold is not None:
+        victory = session.preset_config.get("victory")
+        if not victory:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="This session has no victory condition to edit.",
+            )
+        # Build a new top-level dict so SQLAlchemy detects the change.
+        new_config = {
+            **session.preset_config,
+            "victory": {**victory, "threshold": body.victory_threshold},
+        }
+        session.preset_config = new_config
+        flag_modified(session, "preset_config")
+
+    db.commit()
+    background_tasks.add_task(broadcast_session, session.id)
+    return session.preset_config
 
 
 # ---------------------------------------------------------------------------

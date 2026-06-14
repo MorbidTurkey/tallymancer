@@ -72,6 +72,9 @@ export const api = {
   resetScores: (token) =>
     request(`/api/sessions/${token}/reset`, { method: 'POST' }),
 
+  updateConfig: (token, body) =>
+    request(`/api/sessions/${token}/config`, { method: 'PATCH', body: JSON.stringify(body) }),
+
   getHistory: (token) =>
     request(`/api/sessions/${token}/history`),
 }

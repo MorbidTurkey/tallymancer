@@ -347,11 +347,14 @@ export default function SessionPage() {
         <div className="audience-banner">Watching live · scores update automatically</div>
       )}
 
-      {/* ── Victory condition hint ── */}
+      {/* ── Victory condition hint (editable for players) ── */}
       {victoryConfig && (
-        <div className="victory-hint">
-          {sessionData.preset_config?.win_condition}
-        </div>
+        <VictoryHintBar
+          victoryConfig={victoryConfig}
+          presetConfig={sessionData.preset_config}
+          token={token}
+          isEditor={isEditor}
+        />
       )}
 
       {/* ── Player grid ── */}
@@ -364,6 +367,7 @@ export default function SessionPage() {
             tokenType={tokenType}
             primaryCounter={primaryCounter}
             isEliminated={eliminatedIds.has(player.id)}
+            stepSizes={sessionData.preset_config?.step_sizes ?? [1, 5]}
           />
         ))}
 
@@ -415,6 +419,83 @@ export default function SessionPage() {
           primaryCounter={primaryCounter}
           onExit={() => setTableMode(false)}
         />
+      )}
+    </div>
+  )
+}
+
+// ── Victory hint bar ──────────────────────────────────────────────────────
+// Shows the win condition text. Players can click the threshold number to edit it.
+function VictoryHintBar({ victoryConfig, presetConfig, token, isEditor }) {
+  const [editing, setEditing]     = useState(false)
+  const [inputVal, setInputVal]   = useState(String(victoryConfig.threshold))
+  const [saving, setSaving]       = useState(false)
+
+  // Keep inputVal in sync when a WS update brings in a new threshold
+  // (e.g. another player on the same account edited it)
+  useEffect(() => {
+    if (!editing) setInputVal(String(victoryConfig.threshold))
+  }, [victoryConfig.threshold, editing])
+
+  const counterLabel = presetConfig.counters?.find(c => c.name === victoryConfig.counter)?.label
+    ?? victoryConfig.counter
+
+  function describeCondition() {
+    const thresh = victoryConfig.threshold
+    if (victoryConfig.event === 'win') return `First to ${thresh} ${counterLabel} wins`
+    return `Eliminated at ${thresh} ${counterLabel} · last standing wins`
+  }
+
+  async function save() {
+    const val = parseInt(inputVal, 10)
+    if (isNaN(val)) { setEditing(false); return }
+    setSaving(true)
+    try {
+      await api.updateConfig(token, { victory_threshold: val })
+    } catch (err) {
+      console.error('Failed to update victory threshold:', err.message)
+    }
+    setSaving(false)
+    setEditing(false)
+  }
+
+  if (editing) {
+    return (
+      <div className="victory-hint victory-hint--editing">
+        <span className="victory-hint__label">
+          {victoryConfig.event === 'win' ? 'Win at' : 'Eliminated at'}
+        </span>
+        <input
+          className="victory-hint__input"
+          type="number"
+          value={inputVal}
+          onChange={e => setInputVal(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
+          autoFocus
+          min={0}
+        />
+        <span className="victory-hint__label">{counterLabel}</span>
+        <button className="btn btn--primary btn--sm" onClick={save} disabled={saving}>
+          {saving ? '…' : 'Save'}
+        </button>
+        <button className="btn btn--ghost btn--sm" onClick={() => setEditing(false)}>
+          Cancel
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="victory-hint">
+      <span>{describeCondition()}</span>
+      {isEditor && (
+        <button
+          className="victory-hint__edit-btn"
+          onClick={() => { setInputVal(String(victoryConfig.threshold)); setEditing(true) }}
+          title="Edit victory threshold"
+        >
+          ✏
+        </button>
       )}
     </div>
   )

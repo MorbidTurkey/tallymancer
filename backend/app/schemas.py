@@ -43,11 +43,20 @@ class CounterDefinitionOut(_Base):
     counts_up: bool
 
 
+class VictoryConfigOut(_Base):
+    counter: str
+    threshold: int
+    direction: str   # "gte" | "lte"
+    event: str       # "win" | "eliminate"
+
+
 class PresetOut(_Base):
     slug: str
     name: str
     counters: list[CounterDefinitionOut]
     win_condition: str | None
+    victory: VictoryConfigOut | None = None
+    step_sizes: list[int] = [1, 5]
 
 
 # ---------------------------------------------------------------------------
@@ -79,6 +88,13 @@ class SessionTokenOut(_Base):
     """The two share links returned after session creation."""
     player_link: str    # full URL including token — edit rights
     audience_link: str  # full URL including token — view only
+
+
+class SessionConfigUpdate(_Base):
+    """Body for PATCH /api/sessions/{token}/config."""
+    # Updating only the victory threshold is the primary use-case.
+    # Add more fields here as other config aspects become editable.
+    victory_threshold: int | None = None
 
 
 class SessionOut(_Base):
