@@ -392,7 +392,9 @@ input  { font: inherit; color: inherit; }
   overflow: hidden;
 }
 
-/* Subtle top-right corner glow using the game's secondary accent color.
+/* Top-right corner glow using the game's PRIMARY accent color.
+   Primary is distinct for every game (gold/cyan/magenta/gray) so
+   this makes cards visually game-specific even with per-player border colors.
    inset: 0 fills the whole card so 100% 0% is exactly the top-right corner. */
 .player-card::after {
   content: '';
@@ -400,10 +402,10 @@ input  { font: inherit; color: inherit; }
   inset: 0;
   background: radial-gradient(
     circle at 100% 0%,
-    var(--game-accent-secondary, rgba(0, 0, 0, 0)) 0%,
+    var(--game-accent, rgba(0, 0, 0, 0)) 0%,
     transparent 60%
   );
-  opacity: 0.12;
+  opacity: 0.20;
   pointer-events: none;
 }
 
