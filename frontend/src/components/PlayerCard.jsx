@@ -139,6 +139,11 @@ export default function PlayerCard({ player, token, tokenType, primaryCounter, o
       style={cardStyle}
       data-color={!!player.color}
     >
+      {/* Corner orb — real DOM element so overflow:hidden clips it correctly
+          even when the card is rotated in table view (pseudo-elements can leak
+          through CSS transforms in some browsers). */}
+      <div className="player-card__corner-orb" aria-hidden="true" />
+
       {/* ── Header: name + remove ── */}
       <div className="player-card__header">
         {editingName ? (

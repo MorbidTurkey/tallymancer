@@ -33,14 +33,22 @@
 
 /* ── Reset ───────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { height: 100%; }
+html { height: 100%; width: 100%; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100dvh;
+  width: 100%;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+/* Vite's React root — must fill the viewport so flex children stretch correctly */
+#root {
+  width: 100%;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
 input  { font: inherit; color: inherit; }
@@ -234,6 +242,7 @@ input  { font: inherit; color: inherit; }
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
+  width: 100%;
 }
 
 .session-header {
@@ -387,16 +396,16 @@ input  { font: inherit; color: inherit; }
   /* Left accent border: per-player color → game theme accent → default border */
   border-left: 4px solid var(--player-color, var(--game-accent));
   transition: border-color .2s;
-  /* Needed for the corner glow ::after pseudo-element */
+  /* position:relative makes .player-card__corner-orb position relative to the card.
+     overflow:hidden clips the orb circle so only the inner quarter shows. */
   position: relative;
   overflow: hidden;
 }
 
-/* Top-right corner orb — a solid circle offset so only the bottom-left
-   quarter is visible inside the card (overflow: hidden clips the rest).
-   Using a real circle element (not a gradient) gives the sharp-edged orb look. */
-.player-card::after {
-  content: '';
+/* Top-right corner orb — a real DOM child (not ::after) so overflow:hidden
+   clips it correctly even when the card is inside a CSS transform (table view).
+   The circle is offset 28px past the corner so only the inner quarter shows. */
+.player-card__corner-orb {
   position: absolute;
   width: 90px;
   height: 90px;
@@ -406,6 +415,7 @@ input  { font: inherit; color: inherit; }
   top: -28px;
   right: -28px;
   pointer-events: none;
+  z-index: 0;
 }
 
 /* Header row: name + remove button */
