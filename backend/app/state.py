@@ -73,7 +73,9 @@ def build_session_payload(session: Session, db: DBSession) -> dict:
         "last_activity_at": session.last_activity_at.isoformat(),
         "players": [
             build_player_dict(p, db)
-            for p in session.players
-            if p.is_active
+            for p in sorted(
+                (p for p in session.players if p.is_active),
+                key=lambda p: p.seat_position,
+            )
         ],
     }

@@ -723,6 +723,19 @@ input  { font: inherit; color: inherit; }
 @media (min-width: 640px) {
   .player-grid { padding: 16px; gap: 16px; }
 }
+/* On wider screens let cards grow larger so they fill the available space */
+@media (min-width: 768px) {
+  .player-grid {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    padding: 20px;
+    gap: 20px;
+  }
+  .player-card { padding: 24px; }
+  .player-card__score { font-size: clamp(4rem, 12vw, 7rem); }
+}
+@media (min-width: 1100px) {
+  .player-grid { grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); }
+}
 
 /* ── Table view (phone-flat-on-table mode) ───────────────────── */
 /*

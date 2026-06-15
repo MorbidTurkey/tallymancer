@@ -110,7 +110,12 @@ function gridTemplate(count) {
 // ── TableView component ───────────────────────────────────────────────────
 
 export default function TableView({ players, token, tokenType, primaryCounter, stepSizes = [1, 5], playerColorMap = {}, onExit }) {
-  const count = players.length
+  // Sort by seat_position so array index i === seat position i.
+  // seatConfigs[i] is designed around seat index, so this mapping must be 1:1.
+  // The backend also sorts by seat_position, but we sort here too as a safety net
+  // since incorrect ordering was causing the wrong rotation config to be applied.
+  const sorted = [...players].sort((a, b) => a.seat_position - b.seat_position)
+  const count = sorted.length
   const configs = seatConfigs(count)
   const template = gridTemplate(count)
 
@@ -118,7 +123,7 @@ export default function TableView({ players, token, tokenType, primaryCounter, s
     // Full-viewport overlay — covers the normal session layout
     <div className="table-view" style={template}>
 
-      {players.map((player, i) => {
+      {sorted.map((player, i) => {
         const { gridStyle, rotation, sideways } = configs[i] ?? { gridStyle: {}, rotation: 0, sideways: false }
         return (
           <div key={player.id} className="table-cell" style={gridStyle}>
