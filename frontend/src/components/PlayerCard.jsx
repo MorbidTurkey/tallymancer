@@ -135,7 +135,7 @@ export default function PlayerCard({ player, token, tokenType, primaryCounter, o
 
   return (
     <div
-      className={`player-card${isEliminated ? ' player-card--eliminated' : ''}`}
+      className={`player-card${isEliminated ? ' player-card--eliminated' : ''}${isEditor ? ' player-card--editor' : ''}`}
       style={cardStyle}
       data-color={!!player.color}
     >
@@ -144,7 +144,17 @@ export default function PlayerCard({ player, token, tokenType, primaryCounter, o
           through CSS transforms in some browsers). */}
       <div className="player-card__corner-orb" aria-hidden="true" />
 
-      {/* ── Header: name + remove ── */}
+      {/* Remove button — absolutely positioned in the card's top-right corner so
+          its position is independent of the header flex layout. In table view the
+          whole card rotates, so the button rotates with it and stays in the
+          correct visual corner from each player's perspective. */}
+      {isEditor && (
+        <button className="player-card__remove" onClick={handleRemove} aria-label={`Remove ${player.name}`}>
+          ✕
+        </button>
+      )}
+
+      {/* ── Header: name + eliminated badge ── */}
       <div className="player-card__header">
         {editingName ? (
           <input
@@ -169,11 +179,6 @@ export default function PlayerCard({ player, token, tokenType, primaryCounter, o
 
         {isEliminated && (
           <span className="player-card__eliminated-badge" aria-label="Eliminated">out</span>
-        )}
-        {isEditor && (
-          <button className="player-card__remove" onClick={handleRemove} aria-label={`Remove ${player.name}`}>
-            ✕
-          </button>
         )}
       </div>
 

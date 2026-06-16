@@ -456,8 +456,14 @@ input  { font: inherit; color: inherit; }
   outline: none;
   min-width: 0;
 }
+/* Remove button — absolute position in the card's top-right corner.
+   Being out of flow means it doesn't affect header flex layout and always
+   sits in the same card-relative corner regardless of rotation in table view. */
 .player-card__remove {
-  flex-shrink: 0;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
   width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 50%;
@@ -466,6 +472,12 @@ input  { font: inherit; color: inherit; }
   transition: background .15s, color .15s;
 }
 .player-card__remove:hover { background: var(--surface-2); color: var(--minus-color); }
+
+/* When the remove button is present, pad the header so name text doesn't
+   extend under the button (32px button + 8px margin from card edge + 8px gap). */
+.player-card--editor .player-card__header {
+  padding-right: 40px;
+}
 
 /* Big score number — monospace font reads as "scoreboard" rather than "dashboard" */
 .player-card__score {
@@ -780,6 +792,9 @@ input  { font: inherit; color: inherit; }
   /* Default dimensions: fill the cell exactly */
   width: 100cqw;
   height: 100cqh;
+  /* Explicit transform-origin so rotation always pivots around the visual
+     center of the element (matching the top:50%/left:50% centering above). */
+  transform-origin: center center;
   transform: translate(-50%, -50%) rotate(var(--rotation, 0deg));
 }
 
@@ -800,19 +815,43 @@ input  { font: inherit; color: inherit; }
   height: 100%;
   /* No rounded corners — cells are flush against each other */
   border-radius: 0;
-  /* Left border is gone (it'd be top/bottom/right depending on rotation).
-     Use the accent color as a bottom border instead — always visible to
-     the player regardless of rotation. */
+  /* Left border removed — use a bottom border (always toward the player after rotation). */
   border-left: none;
   border-bottom: 4px solid var(--player-color, var(--game-accent));
   /* Center content vertically */
   justify-content: center;
+  /* Scale padding and gap proportionally to cell height so content fits
+     on small phones without overflowing.  clamp(min, ideal-in-cqh, max) */
+  padding: clamp(10px, 2cqh, 20px);
+  gap: clamp(6px, 1.5cqh, 14px);
 }
 
-/* Scale score to the container's width (cqw) rather than viewport (vw)
-   so it looks right in half-screen or quarter-screen cells */
+/* Score: scale with both cell width AND height so it never overflows the cell.
+   min(14cqw, 12cqh) means on tall cells width drives the size;
+   on short cells (landscape phone) height limits it automatically. */
 .table-cell .player-card__score {
-  font-size: clamp(2rem, 14cqw, 5rem);
+  font-size: clamp(1.5rem, min(14cqw, 12cqh), 5rem);
+  padding: clamp(4px, 1cqh, 12px) 0;
+}
+
+/* Step buttons — shrink min-height proportionally on small cells */
+.table-cell .step-btn--lg {
+  min-height: clamp(36px, 9cqh, 60px);
+  font-size: clamp(0.9rem, 3.5cqw, 1.4rem);
+}
+.table-cell .step-btn--sm {
+  min-height: clamp(28px, 7cqh, 44px);
+}
+
+/* Math input — same proportional treatment */
+.table-cell .math-input {
+  min-height: clamp(28px, 6cqh, 44px);
+  padding: clamp(4px, 1cqh, 10px) 12px;
+}
+
+/* Controls gap also shrinks to keep everything inside the cell */
+.table-cell .player-card__controls {
+  gap: clamp(4px, 1cqh, 10px);
 }
 
 /*
