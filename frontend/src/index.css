@@ -33,7 +33,14 @@
 
 /* ── Reset ───────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { height: 100%; width: 100%; }
+html {
+  height: 100%;
+  width: 100%;
+  /* Prevent any child from widening the page and triggering a horizontal scroll.
+     All internal layouts must use relative widths (%, fr, vw-capped) not fixed px. */
+  overflow-x: hidden;
+  max-width: 100vw;
+}
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   background: var(--bg);
@@ -42,13 +49,17 @@ body {
   width: 100%;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 /* Vite's React root — must fill the viewport so flex children stretch correctly */
 #root {
   width: 100%;
+  max-width: 100vw;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
 input  { font: inherit; color: inherit; }
@@ -260,8 +271,20 @@ input  { font: inherit; color: inherit; }
   /* 3px game-colored top stripe — invisible when --game-accent is the default near-black */
   border-top: 3px solid var(--game-accent, transparent);
 }
-.session-header__left  { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.session-header__right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.session-header__left  { display: flex; align-items: center; gap: 12px; min-width: 0; flex-shrink: 1; }
+/* flex-shrink: 1 + overflow-x: auto: the right nav row compresses and scrolls
+   horizontally on narrow screens instead of pushing the page wider than 100vw. */
+.session-header__right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow-x: auto;
+  /* hide scrollbar visually — still scrollable by touch/drag */
+  scrollbar-width: none;
+}
+.session-header__right::-webkit-scrollbar { display: none; }
 .session-header__game  {
   font-weight: 700;
   font-size: 1rem;
@@ -360,7 +383,9 @@ input  { font: inherit; color: inherit; }
 .player-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* min(280px, 100%) ensures columns never exceed the container width on
+     very narrow viewports; 1fr makes them grow to fill available space. */
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: var(--gap);
   padding: var(--gap);
   align-content: start;
